@@ -194,6 +194,7 @@
             gap: 1rem;
             justify-content: center;
             flex-wrap: wrap;
+            margin-bottom: 1rem;
         }
 
         .quick-btn {
@@ -209,6 +210,38 @@
 
         .quick-btn:hover {
             background: var(--primary);
+            border-color: var(--primary);
+        }
+
+        /* Map Style Selector */
+        .map-style-selector {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+        }
+
+        .style-btn {
+            padding: 0.3rem 0.8rem;
+            background: var(--bg-hover);
+            border: 1px solid var(--border);
+            border-radius: 15px;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.8rem;
+        }
+
+        .style-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .style-btn:hover {
+            background: var(--primary);
+            color: white;
             border-color: var(--primary);
         }
 
@@ -313,13 +346,20 @@
             border-radius: 12px;
             border: 1px solid var(--border);
             overflow: hidden;
-            height: 400px;
+            height: 450px;
         }
 
         .map-header {
             padding: 1rem 1.5rem;
             background: var(--bg-hover);
             border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+
+        .map-header-left {
             display: flex;
             align-items: center;
             gap: 1rem;
@@ -331,7 +371,7 @@
         }
 
         #map {
-            height: 340px;
+            height: 380px;
             width: 100%;
             background: var(--bg-dark);
         }
@@ -377,6 +417,28 @@
             display: none;
         }
 
+        /* Cool map marker styles */
+        .custom-marker {
+            background: var(--primary);
+            border: 3px solid white;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            position: relative;
+        }
+
+        .custom-marker::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 10px;
+            height: 10px;
+            background: white;
+            border-radius: 50%;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .header-content {
@@ -400,14 +462,14 @@
                 min-width: unset;
             }
 
-            .quick-actions {
+            .quick-actions, .map-style-selector {
                 flex-direction: column;
             }
-        }
 
-        /* Dark map tiles */
-        .leaflet-tile {
-            filter: hue-rotate(180deg) invert(100%);
+            .map-header {
+                flex-direction: column;
+                text-align: center;
+            }
         }
     </style>
 </head>
@@ -460,6 +522,21 @@
                 </button>
                 <button class="quick-btn" onclick="setExampleIP('208.67.222.222')">
                     <i class="fas fa-shield-alt"></i> OpenDNS
+                </button>
+            </div>
+
+            <div class="map-style-selector">
+                <button class="style-btn active" onclick="changeMapStyle('dark')" data-style="dark">
+                    🌙 Dark Theme
+                </button>
+                <button class="style-btn" onclick="changeMapStyle('satellite')" data-style="satellite">
+                    🛰️ Satellite
+                </button>
+                <button class="style-btn" onclick="changeMapStyle('terrain')" data-style="terrain">
+                    🏔️ Terrain
+                </button>
+                <button class="style-btn" onclick="changeMapStyle('street')" data-style="street">
+                    🗺️ Street
                 </button>
             </div>
         </div>
@@ -549,8 +626,16 @@
             <!-- Map -->
             <div class="map-container">
                 <div class="map-header">
-                    <i class="fas fa-map" style="color: var(--primary);"></i>
-                    <h3 class="map-title">Geographic Location</h3>
+                    <div class="map-header-left">
+                        <i class="fas fa-map" style="color: var(--primary);"></i>
+                        <h3 class="map-title">Geographic Location</h3>
+                    </div>
+                    <div style="display: flex; gap: 1rem; align-items: center;">
+                        <button class="style-btn" onclick="toggleFullscreen()" title="Fullscreen">
+                            <i class="fas fa-expand"></i>
+                        </button>
+                        <span id="map-coords" style="color: var(--text-muted); font-size: 0.8rem;">--</span>
+                    </div>
                 </div>
                 <div id="map"></div>
             </div>
@@ -569,6 +654,32 @@
     <script>
         let map;
         let marker;
+        let currentMapStyle = 'dark';
+        let currentTileLayer;
+
+        // Map style configurations
+        const mapStyles = {
+            dark: {
+                url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+                name: '🌙 Dark Theme'
+            },
+            satellite: {
+                url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+                attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
+                name: '🛰️ Satellite'
+            },
+            terrain: {
+                url: 'https://stamen-tiles-{s}.a.ssl.fastly.net/terrain/{z}/{x}/{y}{r}.png',
+                attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+                name: '🏔️ Terrain'
+            },
+            street: {
+                url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+                name: '🗺️ Street'
+            }
+        };
 
         // Initialize the page
         document.addEventListener('DOMContentLoaded', function() {
@@ -578,13 +689,39 @@
 
         function initializeMap() {
             // Initialize map centered on world
-            map = L.map('map').setView([20, 0], 2);
+            map = L.map('map', {
+                zoomControl: true,
+                attributionControl: true
+            }).setView([20, 0], 2);
             
-            // Add dark tile layer
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '© OpenStreetMap contributors',
-                maxZoom: 18
+            // Add initial dark tile layer
+            changeMapStyle('dark');
+        }
+
+        function changeMapStyle(style) {
+            // Remove existing tile layer
+            if (currentTileLayer) {
+                map.removeLayer(currentTileLayer);
+            }
+
+            // Add new tile layer
+            const styleConfig = mapStyles[style];
+            currentTileLayer = L.tileLayer(styleConfig.url, {
+                attribution: styleConfig.attribution,
+                maxZoom: 18,
+                tileSize: 256,
+                zoomOffset: 0
             }).addTo(map);
+
+            currentMapStyle = style;
+
+            // Update active button
+            document.querySelectorAll('.style-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.getAttribute('data-style') === style) {
+                    btn.classList.add('active');
+                }
+            });
         }
 
         function setupEventListeners() {
@@ -609,6 +746,13 @@
                 } else {
                     this.style.borderColor = 'var(--border)';
                 }
+            });
+
+            // Map click event to show coordinates
+            map.on('click', function(e) {
+                const coords = e.latlng;
+                document.getElementById('map-coords').textContent = 
+                    `${coords.lat.toFixed(4)}, ${coords.lng.toFixed(4)}`;
             });
         }
 
@@ -705,20 +849,68 @@
                 map.removeLayer(marker);
             }
 
-            // Add new marker
-            marker = L.marker([lat, lng]).addTo(map)
-                .bindPopup(`
-                    <div style="color: #333; font-size: 14px;">
-                        <strong>${data.ip}</strong><br>
-                        📍 ${data.city}, ${data.region}<br>
-                        🌍 ${data.country}<br>
-                        🏢 ${data.isp}
+            // Create custom icon for the marker
+            const customIcon = L.divIcon({
+                className: 'custom-div-icon',
+                html: `
+                    <div style="
+                        background: #3b82f6;
+                        border: 3px solid white;
+                        border-radius: 50%;
+                        width: 30px;
+                        height: 30px;
+                        position: relative;
+                        box-shadow: 0 3px 10px rgba(59, 130, 246, 0.4);
+                    ">
+                        <div style="
+                            position: absolute;
+                            top: 50%;
+                            left: 50%;
+                            transform: translate(-50%, -50%);
+                            width: 10px;
+                            height: 10px;
+                            background: white;
+                            border-radius: 50%;
+                        "></div>
                     </div>
-                `)
+                `,
+                iconSize: [30, 30],
+                iconAnchor: [15, 15]
+            });
+
+            // Add new marker with custom popup
+            marker = L.marker([lat, lng], { icon: customIcon }).addTo(map)
+                .bindPopup(`
+                    <div style="color: #333; font-size: 14px; min-width: 200px;">
+                        <div style="font-weight: bold; margin-bottom: 8px; color: #3b82f6;">
+                            🌍 ${data.ip}
+                        </div>
+                        <div style="margin: 4px 0;">📍 ${data.city}, ${data.region}</div>
+                        <div style="margin: 4px 0;">🏛️ ${data.country}</div>
+                        <div style="margin: 4px 0;">🏢 ${data.isp}</div>
+                        <div style="margin: 8px 0 4px; font-size: 12px; color: #666;">
+                            📐 ${lat.toFixed(4)}, ${lng.toFixed(4)}
+                        </div>
+                    </div>
+                `, {
+                    maxWidth: 250,
+                    className: 'custom-popup'
+                })
                 .openPopup();
 
-            // Center map on location
+            // Center map on location with a nice zoom level
             map.setView([lat, lng], 10);
+
+            // Update coordinates display
+            document.getElementById('map-coords').textContent = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+
+            // Add a subtle circle to show the general area
+            L.circle([lat, lng], {
+                color: '#3b82f6',
+                fillColor: '#3b82f6',
+                fillOpacity: 0.1,
+                radius: 50000 // 50km radius
+            }).addTo(map);
         }
 
         async function findMyIP() {
@@ -748,6 +940,13 @@
 
         function setExampleIP(ip) {
             document.getElementById('ip-input').value = ip;
+        }
+
+        function toggleFullscreen() {
+            const mapContainer = document.querySelector('.map-container');
+            if (mapContainer.requestFullscreen) {
+                mapContainer.requestFullscreen();
+            }
         }
 
         function showMessage(message, type) {
