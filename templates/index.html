@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IP Geolocation Tracker | TheGhostPacket</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-dark: #2563eb;
+            --secondary: #1e293b;
+            --accent: #06b6d4;
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --bg-hover: #334155;
+            --border: #334155;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, var(--bg-dark) 0%, #1a1a2e 100%);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border);
+            padding: 1.5rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(20px);
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .header-title h1 {
+            font-size: 1.8rem;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--text);
+            border: 2px solid var(--border);
+        }
+
+        .btn-outline:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .main-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .search-section {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 2rem;
+            border: 1px solid var(--border);
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .search-title {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--text);
+        }
+
+        .search-subtitle {
+            color: var(--text-muted);
+            margin-bottom: 2rem;
+        }
+
+        .search-form {
+            display: flex;
+            gap: 1rem;
+            max-width: 600px;
+            margin: 0 auto 2rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .search-input {
+            flex: 1;
+            min-width: 300px;
+            padding: 1rem;
+            background: var(--bg-dark);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .search-btn {
+            padding: 1rem 2rem;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .search-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3);
+        }
+
+        .search-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .quick-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .quick-btn {
+            padding: 0.5rem 1rem;
+            background: var(--bg-hover);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            color: var(--text);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .quick-btn:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .results-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .result-card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 2rem;
+            border: 1px solid var(--border);
+        }
+
+        .result-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .result-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .result-title {
+            font-size: 1.3rem;
+            color: var(--text);
+            margin-bottom: 0.25rem;
+        }
+
+        .result-subtitle {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .info-grid {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            background: rgba(59, 130, 246, 0.1);
+            border-radius: 8px;
+            border-left: 3px solid var(--primary);
+        }
+
+        .info-label {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .info-value {
+            color: var(--text);
+            font-weight: 600;
+            text-align: right;
+        }
+
+        .risk-indicator {
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .risk-low {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--success);
+            border: 1px solid var(--success);
+        }
+
+        .risk-medium {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--warning);
+            border: 1px solid var(--warning);
+        }
+
+        .risk-high {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--danger);
+            border: 1px solid var(--danger);
+        }
+
+        .map-container {
+            grid-column: 1 / -1;
+            background: var(--bg-card);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+            height: 400px;
+        }
+
+        .map-header {
+            padding: 1rem 1.5rem;
+            background: var(--bg-hover);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .map-title {
+            font-size: 1.2rem;
+            color: var(--text);
+        }
+
+        #map {
+            height: 340px;
+            width: 100%;
+            background: var(--bg-dark);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-muted);
+        }
+
+        .loading i {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid var(--danger);
+            color: var(--danger);
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            text-align: center;
+        }
+
+        .success-message {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid var(--success);
+            color: var(--success);
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            text-align: center;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .main-content {
+                padding: 1rem;
+            }
+
+            .results-section {
+                grid-template-columns: 1fr;
+            }
+
+            .search-form {
+                flex-direction: column;
+            }
+
+            .search-input {
+                min-width: unset;
+            }
+
+            .quick-actions {
+                flex-direction: column;
+            }
+        }
+
+        /* Dark map tiles */
+        .leaflet-tile {
+            filter: hue-rotate(180deg) invert(100%);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <div class="header-title">
+                <i class="fas fa-globe-americas" style="color: var(--primary); font-size: 2rem;"></i>
+                <h1>IP Geolocation Tracker</h1>
+            </div>
+            <div class="header-actions">
+                <a href="https://github.com/TheGhostPacket" class="btn btn-primary" target="_blank">
+                    <i class="fab fa-github"></i> GitHub
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <!-- Search Section -->
+        <div class="search-section">
+            <h2 class="search-title">🔍 IP Address Lookup</h2>
+            <p class="search-subtitle">
+                Enter an IP address to discover its location, ISP, and security information
+            </p>
+            
+            <div class="search-form">
+                <input 
+                    type="text" 
+                    id="ip-input" 
+                    class="search-input" 
+                    placeholder="Enter IP address (e.g., 8.8.8.8)"
+                    pattern="^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$"
+                >
+                <button id="search-btn" class="search-btn">
+                    <i class="fas fa-search"></i>
+                    <span>Lookup</span>
+                </button>
+            </div>
+
+            <div class="quick-actions">
+                <button class="quick-btn" onclick="findMyIP()">
+                    <i class="fas fa-location-arrow"></i> Find My IP
+                </button>
+                <button class="quick-btn" onclick="setExampleIP('8.8.8.8')">
+                    <i class="fas fa-server"></i> Google DNS
+                </button>
+                <button class="quick-btn" onclick="setExampleIP('1.1.1.1')">
+                    <i class="fas fa-cloud"></i> Cloudflare DNS
+                </button>
+                <button class="quick-btn" onclick="setExampleIP('208.67.222.222')">
+                    <i class="fas fa-shield-alt"></i> OpenDNS
+                </button>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div id="results-section" class="results-section hidden">
+            <!-- Location Information -->
+            <div class="result-card">
+                <div class="result-header">
+                    <div class="result-icon" style="background: rgba(59, 130, 246, 0.2); color: var(--primary);">
+                        <i class="fas fa-map-marker-alt"></i>
+                    </div>
+                    <div>
+                        <h3 class="result-title">Location Details</h3>
+                        <p class="result-subtitle">Geographic information</p>
+                    </div>
+                </div>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">IP Address</span>
+                        <span class="info-value" id="result-ip">--</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Country</span>
+                        <span class="info-value" id="result-country">--</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Region</span>
+                        <span class="info-value" id="result-region">--</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">City</span>
+                        <span class="info-value" id="result-city">--</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Coordinates</span>
+                        <span class="info-value" id="result-coordinates">--</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Timezone</span>
+                        <span class="info-value" id="result-timezone">--</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Network Information -->
+            <div class="result-card">
+                <div class="result-header">
+                    <div class="result-icon" style="background: rgba(6, 182, 212, 0.2); color: var(--accent);">
+                        <i class="fas fa-network-wired"></i>
+                    </div>
+                    <div>
+                        <h3 class="result-title">Network Details</h3>
+                        <p class="result-subtitle">ISP and organization</p>
+                    </div>
+                </div>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">ISP</span>
+                        <span class="info-value" id="result-isp">--</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Organization</span>
+                        <span class="info-value" id="result-org">--</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">AS Info</span>
+                        <span class="info-value" id="result-as">--</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Risk Level</span>
+                        <span class="info-value">
+                            <span id="result-risk" class="risk-indicator risk-low">Low</span>
+                        </span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">IP Type</span>
+                        <span class="info-value" id="result-type">--</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Lookup Time</span>
+                        <span class="info-value" id="result-time">--</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Map -->
+            <div class="map-container">
+                <div class="map-header">
+                    <i class="fas fa-map" style="color: var(--primary);"></i>
+                    <h3 class="map-title">Geographic Location</h3>
+                </div>
+                <div id="map"></div>
+            </div>
+        </div>
+
+        <!-- Loading -->
+        <div id="loading" class="loading hidden">
+            <i class="fas fa-spinner"></i>
+            <p>Looking up IP geolocation...</p>
+        </div>
+
+        <!-- Error/Success Messages -->
+        <div id="message-container"></div>
+    </div>
+
+    <script>
+        let map;
+        let marker;
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeMap();
+            setupEventListeners();
+        });
+
+        function initializeMap() {
+            // Initialize map centered on world
+            map = L.map('map').setView([20, 0], 2);
+            
+            // Add dark tile layer
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors',
+                maxZoom: 18
+            }).addTo(map);
+        }
+
+        function setupEventListeners() {
+            const ipInput = document.getElementById('ip-input');
+            const searchBtn = document.getElementById('search-btn');
+
+            // Search button click
+            searchBtn.addEventListener('click', performLookup);
+
+            // Enter key in input field
+            ipInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    performLookup();
+                }
+            });
+
+            // Input validation
+            ipInput.addEventListener('input', function() {
+                const isValid = validateIPAddress(this.value);
+                if (this.value && !isValid) {
+                    this.style.borderColor = 'var(--danger)';
+                } else {
+                    this.style.borderColor = 'var(--border)';
+                }
+            });
+        }
+
+        function validateIPAddress(ip) {
+            const ipRegex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+            return ipRegex.test(ip);
+        }
+
+        async function performLookup() {
+            const ipInput = document.getElementById('ip-input');
+            const searchBtn = document.getElementById('search-btn');
+            const loading = document.getElementById('loading');
+            const resultsSection = document.getElementById('results-section');
+            const messageContainer = document.getElementById('message-container');
+
+            const ipAddress = ipInput.value.trim();
+
+            // Validate input
+            if (!ipAddress) {
+                showMessage('Please enter an IP address', 'error');
+                return;
+            }
+
+            if (!validateIPAddress(ipAddress)) {
+                showMessage('Please enter a valid IP address', 'error');
+                return;
+            }
+
+            // Show loading state
+            loading.classList.remove('hidden');
+            resultsSection.classList.add('hidden');
+            messageContainer.innerHTML = '';
+            searchBtn.disabled = true;
+            searchBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Looking up...';
+
+            try {
+                const response = await fetch('/api/lookup', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ ip: ipAddress })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    displayResults(data);
+                    showMessage('IP lookup completed successfully!', 'success');
+                } else {
+                    showMessage(`Lookup failed: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                showMessage(`Network error: ${error.message}`, 'error');
+            } finally {
+                loading.classList.add('hidden');
+                searchBtn.disabled = false;
+                searchBtn.innerHTML = '<i class="fas fa-search"></i> Lookup';
+            }
+        }
+
+        function displayResults(data) {
+            // Update result fields
+            document.getElementById('result-ip').textContent = data.ip;
+            document.getElementById('result-country').textContent = `${data.country} (${data.country_code})`;
+            document.getElementById('result-region').textContent = data.region;
+            document.getElementById('result-city').textContent = data.city;
+            document.getElementById('result-coordinates').textContent = 
+                data.latitude && data.longitude ? `${data.latitude}, ${data.longitude}` : 'Unknown';
+            document.getElementById('result-timezone').textContent = data.timezone;
+            document.getElementById('result-isp').textContent = data.isp;
+            document.getElementById('result-org').textContent = data.organization;
+            document.getElementById('result-as').textContent = data.as_info;
+            document.getElementById('result-type').textContent = data.is_private ? 'Private IP' : 'Public IP';
+            document.getElementById('result-time').textContent = data.lookup_time;
+
+            // Update risk indicator
+            const riskElement = document.getElementById('result-risk');
+            riskElement.textContent = data.risk_level;
+            riskElement.className = `risk-indicator risk-${data.risk_level.toLowerCase()}`;
+
+            // Update map
+            if (data.latitude && data.longitude) {
+                updateMap(data.latitude, data.longitude, data);
+            }
+
+            // Show results
+            document.getElementById('results-section').classList.remove('hidden');
+        }
+
+        function updateMap(lat, lng, data) {
+            // Remove existing marker
+            if (marker) {
+                map.removeLayer(marker);
+            }
+
+            // Add new marker
+            marker = L.marker([lat, lng]).addTo(map)
+                .bindPopup(`
+                    <div style="color: #333; font-size: 14px;">
+                        <strong>${data.ip}</strong><br>
+                        📍 ${data.city}, ${data.region}<br>
+                        🌍 ${data.country}<br>
+                        🏢 ${data.isp}
+                    </div>
+                `)
+                .openPopup();
+
+            // Center map on location
+            map.setView([lat, lng], 10);
+        }
+
+        async function findMyIP() {
+            const loading = document.getElementById('loading');
+            const messageContainer = document.getElementById('message-container');
+
+            loading.classList.remove('hidden');
+            messageContainer.innerHTML = '';
+
+            try {
+                const response = await fetch('/api/my-ip');
+                const data = await response.json();
+
+                if (data.success) {
+                    document.getElementById('ip-input').value = data.ip;
+                    displayResults(data);
+                    showMessage('Your IP location found!', 'success');
+                } else {
+                    showMessage(`Failed to find your IP: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                showMessage(`Network error: ${error.message}`, 'error');
+            } finally {
+                loading.classList.add('hidden');
+            }
+        }
+
+        function setExampleIP(ip) {
+            document.getElementById('ip-input').value = ip;
+        }
+
+        function showMessage(message, type) {
+            const messageContainer = document.getElementById('message-container');
+            const className = type === 'error' ? 'error-message' : 'success-message';
+            
+            messageContainer.innerHTML = `
+                <div class="${className}">
+                    <i class="fas fa-${type === 'error' ? 'exclamation-triangle' : 'check-circle'}"></i>
+                    ${message}
+                </div>
+            `;
+
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                messageContainer.innerHTML = '';
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
