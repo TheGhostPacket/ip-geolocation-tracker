@@ -2,7 +2,6 @@
 
 A powerful web application that provides comprehensive geolocation information for any IP address, featuring interactive mapping, security risk assessment, and detailed network analysis.
 
-![IP Geolocation Tracker](https://via.placeholder.com/800x400/0f172a/3b82f6?text=IP+Geolocation+Tracker)
 
 ## ✨ Features
 
