@@ -1084,11 +1084,15 @@
     // Basic skeleton to integrate with your current backend / API.
     // Replace `performLookup` with your existing fetch logic.
     async function performLookup(ip, mode) {
-      // Example:
-      // const res = await fetch('/lookup?ip=' + encodeURIComponent(ip) + '&mode=' + mode);
-      // return res.json();
-      return null; // placeholder
+    const res = await fetch('/api/lookup', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ip })
+    });
+      if (!res.ok) throw new Error('Lookup failed');
+      return res.json();
     }
+
 
     function populateUI(data) {
       if (!data) return;
