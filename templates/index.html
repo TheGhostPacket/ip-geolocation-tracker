@@ -1,1169 +1,970 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>IP Geolocation Tracker</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta
-    name="description"
-    content="Professional IP geolocation tracker for cybersecurity investigations, network intelligence, and location analysis."
-  />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
-    rel="stylesheet"
-  />
-
-  <style>
-    :root {
-      --bg: #050816;
-      --bg-elevated: #0b1020;
-      --accent: #06b6d4;
-      --accent-soft: rgba(56, 189, 248, 0.12);
-      --accent-strong: #22d3ee;
-      --danger: #f97373;
-      --text: #f9fafb;
-      --muted: #9ca3af;
-      --border-subtle: rgba(148, 163, 184, 0.28);
-      --shadow-soft: 0 18px 45px rgba(15, 23, 42, 0.8);
-      --radius-lg: 18px;
-      --radius-md: 12px;
-      --radius-pill: 999px;
-      --transition-fast: 160ms ease-out;
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    html,
-    body {
-      height: 100%;
-      background: radial-gradient(circle at 0% 0%, #1e293b 0, #020617 55%, #000 100%);
-      color: var(--text);
-      font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-      -webkit-font-smoothing: antialiased;
-    }
-
-    body {
-      display: flex;
-      justify-content: center;
-      align-items: stretch;
-      padding: 24px;
-    }
-
-    .app-shell {
-      width: 100%;
-      max-width: 1240px;
-      display: grid;
-      grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
-      gap: 22px;
-      background: linear-gradient(
-          135deg,
-          rgba(15, 23, 42, 0.85),
-          rgba(15, 23, 42, 0.96)
-        ),
-        radial-gradient(circle at top left, rgba(56, 189, 248, 0.18), transparent 60%);
-      border-radius: 28px;
-      border: 1px solid rgba(148, 163, 184, 0.35);
-      box-shadow: 0 32px 120px rgba(0, 0, 0, 0.95);
-      backdrop-filter: blur(26px);
-      padding: 22px;
-    }
-
-    @media (max-width: 960px) {
-      body {
-        padding: 12px;
-      }
-
-      .app-shell {
-        grid-template-columns: minmax(0, 1fr);
-        padding: 18px;
-        border-radius: 22px;
-      }
-    }
-
-    /* Left Column – Controls + Results */
-    .left-col {
-      display: flex;
-      flex-direction: column;
-      gap: 18px;
-    }
-
-    .header-bar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-    }
-
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .brand-mark {
-      width: 32px;
-      height: 32px;
-      border-radius: 12px;
-      background: radial-gradient(circle at 30% 0, #22d3ee 0, #0f172a 55%, #020617 100%);
-      position: relative;
-      box-shadow: 0 14px 35px rgba(34, 211, 238, 0.4);
-    }
-
-    .brand-mark::after {
-      content: "";
-      position: absolute;
-      inset: 27%;
-      border-radius: 999px;
-      border: 2px solid rgba(15, 23, 42, 0.9);
-      box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.25);
-    }
-
-    .brand-text {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-
-    .brand-title {
-      font-size: 1rem;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--muted);
-    }
-
-    .brand-subtitle {
-      font-size: 0.78rem;
-      color: rgba(148, 163, 184, 0.9);
-    }
-
-    .chip-group {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-      justify-content: flex-end;
-    }
-
-    .chip {
-      border-radius: var(--radius-pill);
-      padding: 6px 12px;
-      font-size: 0.75rem;
-      border: 1px solid rgba(148, 163, 184, 0.7);
-      color: var(--muted);
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      background: radial-gradient(
-        circle at top left,
-        rgba(15, 23, 42, 0.1),
-        rgba(15, 23, 42, 0.8)
-      );
-    }
-
-    .chip-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 999px;
-      background: radial-gradient(circle at 40% 0%, #22c55e 0, #16a34a 60%, #052e16 100%);
-      box-shadow: 0 0 12px rgba(34, 197, 94, 0.9);
-    }
-
-    .chip.accent {
-      border-color: rgba(45, 212, 191, 0.9);
-      color: #a5f3fc;
-      background: linear-gradient(120deg, rgba(34, 197, 235, 0.18), rgba(15, 23, 42, 0.7));
-    }
-
-    /* Hero */
-    .hero-card {
-      background: radial-gradient(circle at top right, rgba(56, 189, 248, 0.14), transparent 55%),
-        radial-gradient(circle at bottom left, rgba(15, 23, 42, 0.85), #020617);
-      border-radius: var(--radius-lg);
-      padding: 18px 18px 16px;
-      border: 1px solid rgba(148, 163, 184, 0.4);
-      box-shadow: var(--shadow-soft);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .hero-card::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background-image: radial-gradient(circle at 0 0, rgba(148, 163, 184, 0.12) 0, transparent 55%),
-        radial-gradient(circle at 100% 0, rgba(56, 189, 248, 0.18) 0, transparent 55%);
-      opacity: 0.4;
-      pointer-events: none;
-      mix-blend-mode: screen;
-    }
-
-    .hero-inner {
-      position: relative;
-      z-index: 1;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .hero-heading {
-      font-size: 1.65rem;
-      font-weight: 600;
-      letter-spacing: 0.03em;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .hero-heading span.accent-text {
-      background: linear-gradient(120deg, #22d3ee, #a855f7);
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-    }
-
-    .hero-lead {
-      font-size: 0.9rem;
-      color: rgba(209, 213, 219, 0.9);
-      max-width: 520px;
-    }
-
-    .hero-metadata {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 4px;
-      font-size: 0.78rem;
-      color: var(--muted);
-    }
-
-    .hero-metadata span {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 6px 10px;
-      border-radius: var(--radius-pill);
-      background: rgba(15, 23, 42, 0.7);
-      border: 1px solid rgba(148, 163, 184, 0.4);
-    }
-
-    .hero-metadata span strong {
-      font-weight: 600;
-      color: #e5e7eb;
-    }
-
-    /* Input Panel */
-    .panel {
-      background: linear-gradient(
-        135deg,
-        rgba(15, 23, 42, 0.96),
-        rgba(15, 23, 42, 0.9)
-      );
-      border-radius: var(--radius-lg);
-      border: 1px solid var(--border-subtle);
-      padding: 16px 16px 14px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .panel-header-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-    }
-
-    .panel-title {
-      font-size: 0.9rem;
-      font-weight: 500;
-      display: flex;
-      align-items: center;
-      gap: 7px;
-    }
-
-    .panel-title-badge {
-      font-size: 0.7rem;
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-      padding: 3px 8px;
-      border-radius: 999px;
-      border: 1px solid rgba(148, 163, 184, 0.75);
-      color: var(--muted);
-    }
-
-    .panel-subtitle {
-      font-size: 0.78rem;
-      color: var(--muted);
-      margin-top: 2px;
-    }
-
-    .quick-actions {
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
-    }
-
-    .qa-btn {
-      border-radius: var(--radius-pill);
-      border: 1px solid rgba(148, 163, 184, 0.5);
-      background: rgba(15, 23, 42, 0.9);
-      color: var(--muted);
-      font-size: 0.75rem;
-      padding: 5px 9px;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      transition: background var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
-    }
-
-    .qa-btn:hover {
-      background: rgba(30, 64, 175, 0.7);
-      border-color: rgba(56, 189, 248, 0.85);
-      color: #e5f7ff;
-    }
-
-    .input-row {
-      display: grid;
-      grid-template-columns: minmax(0, 2.3fr) minmax(0, 1.7fr) auto;
-      gap: 8px;
-      align-items: stretch;
-    }
-
-    @media (max-width: 800px) {
-      .input-row {
-        grid-template-columns: minmax(0, 1fr);
-      }
-    }
-
-    .field {
-      position: relative;
-    }
-
-    .field-label {
-      font-size: 0.7rem;
-      text-transform: uppercase;
-      letter-spacing: 0.14em;
-      color: var(--muted);
-      margin-bottom: 4px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .field-label span.badge {
-      border-radius: 999px;
-      padding: 2px 6px;
-      border: 1px solid rgba(148, 163, 184, 0.5);
-      font-size: 0.7rem;
-      color: rgba(209, 213, 219, 0.86);
-    }
-
-    .input,
-    .select {
-      width: 100%;
-      padding: 9px 11px;
-      border-radius: 10px;
-      border: 1px solid rgba(75, 85, 99, 0.9);
-      background: radial-gradient(circle at 0 0, rgba(15, 23, 42, 0.94), rgba(15, 23, 42, 0.98));
-      color: var(--text);
-      font-size: 0.88rem;
-      outline: none;
-      transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast);
-    }
-
-    .input::placeholder {
-      color: rgba(148, 163, 184, 0.75);
-    }
-
-    .input:focus,
-    .select:focus {
-      border-color: var(--accent-strong);
-      box-shadow: 0 0 0 1px rgba(45, 212, 191, 0.9);
-      background: radial-gradient(circle at 0 0, rgba(15, 23, 42, 0.9), rgba(15, 23, 42, 1));
-    }
-
-    .btn {
-      border-radius: 12px;
-      padding: 11px 18px;
-      border: none;
-      font-size: 0.9rem;
-      font-weight: 500;
-      cursor: pointer;
-      white-space: nowrap;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 9px;
-      background: radial-gradient(circle at 0 0, #38bdf8 0, #0ea5e9 40%, #0369a1 100%);
-      color: #f9fafb;
-      box-shadow: 0 18px 35px rgba(8, 47, 73, 0.8);
-      transition: transform 120ms ease-out, box-shadow 120ms ease-out, filter 120ms ease-out;
-    }
-
-    .btn:hover {
-      transform: translateY(-1px);
-      filter: brightness(1.05);
-      box-shadow: 0 22px 42px rgba(7, 89, 133, 0.9);
-    }
-
-    .btn:active {
-      transform: translateY(0);
-      box-shadow: 0 10px 26px rgba(15, 23, 42, 0.9);
-    }
-
-    .btn-secondary {
-      background: rgba(15, 23, 42, 0.9);
-      border: 1px solid rgba(148, 163, 184, 0.9);
-      box-shadow: none;
-      color: #e5e7eb;
-    }
-
-    .btn-secondary:hover {
-      background: rgba(31, 41, 55, 0.95);
-      box-shadow: 0 16px 30px rgba(15, 23, 42, 0.9);
-    }
-
-    .btn-icon {
-      width: 16px;
-      height: 16px;
-      border-radius: 999px;
-      border: 1px solid rgba(15, 23, 42, 0.9);
-      background: radial-gradient(circle at 30% 0%, #f9fafb 0, #e5e7eb 55%, #9ca3af 100%);
-      display: inline-block;
-      box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.6);
-      position: relative;
-    }
-
-    .btn-icon::after {
-      content: "";
-      position: absolute;
-      inset: 23%;
-      border-radius: inherit;
-      background: radial-gradient(circle at 30% 0, #0284c7 0, #0369a1 60%, #082f49 100%);
-    }
-
-    .panel-footer {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      font-size: 0.75rem;
-      color: var(--muted);
-      margin-top: 4px;
-      flex-wrap: wrap;
-    }
-
-    .panel-footer span strong {
-      color: #e5e7eb;
-    }
-
-    .pill-metric {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      border-radius: 999px;
-      padding: 4px 9px;
-      border: 1px solid rgba(148, 163, 184, 0.65);
-      background: rgba(15, 23, 42, 0.85);
-    }
-
-    .pill-metric-dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 999px;
-      background: #22c55e;
-      box-shadow: 0 0 8px rgba(34, 197, 94, 0.9);
-    }
-
-    /* Result Grid */
-    .results-grid {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 8px;
-    }
-
-    @media (max-width: 960px) {
-      .results-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-    }
-
-    @media (max-width: 600px) {
-      .results-grid {
-        grid-template-columns: minmax(0, 1fr);
-      }
-    }
-
-    .stat-card {
-      border-radius: var(--radius-md);
-      padding: 9px 10px 8px;
-      border: 1px solid rgba(31, 41, 55, 1);
-      background: linear-gradient(
-        135deg,
-        rgba(15, 23, 42, 0.96),
-        rgba(15, 23, 42, 0.98)
-      );
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .stat-card.primary {
-      border-color: rgba(56, 189, 248, 0.7);
-      background: radial-gradient(circle at top left, rgba(56, 189, 248, 0.18), transparent 55%),
-        linear-gradient(135deg, rgba(15, 23, 42, 0.96), rgba(15, 23, 42, 0.98));
-    }
-
-    .stat-card-label {
-      font-size: 0.7rem;
-      text-transform: uppercase;
-      letter-spacing: 0.16em;
-      color: rgba(148, 163, 184, 0.9);
-    }
-
-    .stat-card-value {
-      font-size: 0.9rem;
-      font-weight: 500;
-      color: #f9fafb;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .stat-card-meta {
-      font-size: 0.7rem;
-      color: rgba(156, 163, 175, 0.98);
-    }
-
-    .stat-card-pill {
-      position: absolute;
-      top: 8px;
-      right: 8px;
-      font-size: 0.65rem;
-      padding: 2px 6px;
-      border-radius: 999px;
-      border: 1px solid rgba(148, 163, 184, 0.6);
-      background: rgba(15, 23, 42, 0.9);
-      color: rgba(209, 213, 219, 0.9);
-    }
-
-    /* Right Column – Map & Insights */
-    .right-col {
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-    }
-
-    .map-card {
-      flex: 1;
-      min-height: 260px;
-      border-radius: 20px;
-      border: 1px solid rgba(15, 23, 42, 1);
-      background: radial-gradient(circle at 0% 0%, rgba(56, 189, 248, 0.18), transparent 55%),
-        radial-gradient(circle at 100% 100%, rgba(129, 140, 248, 0.14), transparent 55%),
-        linear-gradient(135deg, #020617, #020617);
-      position: relative;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .map-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 10px 12px 6px;
-      z-index: 2;
-      position: relative;
-    }
-
-    .map-title {
-      font-size: 0.9rem;
-      font-weight: 500;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .map-title-indicator {
-      width: 10px;
-      height: 10px;
-      border-radius: 999px;
-      border: 1px solid rgba(15, 23, 42, 0.9);
-      background: radial-gradient(circle at 30% 0, #22c55e 0, #16a34a 60%, #052e16 100%);
-      box-shadow: 0 0 12px rgba(52, 211, 153, 0.9);
-    }
-
-    .map-controls {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .map-chip {
-      padding: 4px 9px;
-      font-size: 0.75rem;
-      border-radius: 999px;
-      background: rgba(15, 23, 42, 0.88);
-      border: 1px solid rgba(148, 163, 184, 0.65);
-      color: rgba(209, 213, 219, 0.96);
-    }
-
-    .map-view-toggle {
-      display: inline-flex;
-      border-radius: 999px;
-      padding: 3px;
-      background: rgba(15, 23, 42, 0.92);
-      border: 1px solid rgba(148, 163, 184, 0.5);
-      gap: 4px;
-    }
-
-    .map-view-toggle button {
-      border-radius: 999px;
-      border: none;
-      font-size: 0.72rem;
-      padding: 4px 7px;
-      background: transparent;
-      color: rgba(156, 163, 175, 0.95);
-      cursor: pointer;
-      transition: background var(--transition-fast), color var(--transition-fast);
-    }
-
-    .map-view-toggle button.active {
-      background: rgba(15, 23, 42, 0.96);
-      color: #e5e7eb;
-    }
-
-    .map-canvas {
-      flex: 1;
-      margin: 0 10px 10px;
-      border-radius: 14px;
-      border: 1px solid rgba(15, 23, 42, 0.9);
-      background: radial-gradient(circle at 0 0, rgba(15, 23, 42, 0.94), rgba(15, 23, 42, 1)),
-        repeating-linear-gradient(
-          to right,
-          rgba(15, 23, 42, 0.95),
-          rgba(15, 23, 42, 0.95) 1px,
-          rgba(30, 64, 175, 0.35) 1px,
-          rgba(30, 64, 175, 0.35) 1px
-        );
-      position: relative;
-      overflow: hidden;
-    }
-
-    .map-placeholder {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: rgba(148, 163, 184, 0.6);
-      font-size: 0.78rem;
-      text-align: center;
-      padding: 10px;
-    }
-
-    .map-overlay {
-      position: absolute;
-      inset: 12px;
-      pointer-events: none;
-      opacity: 0.18;
-      background-image: radial-gradient(circle at center, transparent 0, transparent 62%, rgba(37, 99, 235, 0.9) 70%, transparent 78%);
-      mix-blend-mode: screen;
-    }
-
-    .map-origin {
-      position: absolute;
-      width: 9px;
-      height: 9px;
-      border-radius: 999px;
-      background: #22c55e;
-      box-shadow: 0 0 12px rgba(34, 197, 94, 1);
-      left: 25%;
-      top: 65%;
-    }
-
-    .map-target {
-      position: absolute;
-      width: 14px;
-      height: 14px;
-      border-radius: 999px;
-      border: 2px solid rgba(56, 189, 248, 1);
-      box-shadow: 0 0 16px rgba(56, 189, 248, 0.86);
-      right: 30%;
-      top: 30%;
-    }
-
-    .map-path {
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      background-image: radial-gradient(circle at 40% 40%, transparent 0, transparent 32%, rgba(56, 189, 248, 0.9) 52%, transparent 60%);
-      opacity: 0.24;
-      mix-blend-mode: screen;
-    }
-
-    .insights-card {
-      border-radius: 18px;
-      border: 1px solid rgba(31, 41, 55, 1);
-      background: radial-gradient(circle at 0 0, rgba(15, 23, 42, 0.98), #020617);
-      padding: 12px 12px 10px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .insights-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-    }
-
-    .insights-title {
-      font-size: 0.9rem;
-      font-weight: 500;
-      display: flex;
-      align-items: center;
-      gap: 7px;
-    }
-
-    .insights-subtitle {
-      font-size: 0.78rem;
-      color: var(--muted);
-    }
-
-    .risk-pill {
-      border-radius: 999px;
-      padding: 4px 10px;
-      font-size: 0.74rem;
-      border: 1px solid rgba(248, 250, 252, 0.8);
-      background: radial-gradient(circle at 0 0, rgba(239, 68, 68, 0.45), rgba(15, 23, 42, 0.96));
-      color: #fee2e2;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .risk-dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 999px;
-      background: #f97373;
-      box-shadow: 0 0 12px rgba(248, 113, 113, 0.98);
-    }
-
-    .insights-grid {
-      display: grid;
-      grid-template-columns: minmax(0, 1.4fr) minmax(0, 1.1fr);
-      gap: 10px;
-      margin-top: 4px;
-    }
-
-    @media (max-width: 960px) {
-      .insights-grid {
-        grid-template-columns: minmax(0, 1fr);
-      }
-    }
-
-    .insights-list {
-      list-style: none;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      font-size: 0.79rem;
-      color: rgba(209, 213, 219, 0.96);
-    }
-
-    .insights-list li {
-      display: flex;
-      gap: 7px;
-    }
-
-    .bullet {
-      width: 6px;
-      height: 6px;
-      border-radius: 999px;
-      margin-top: 4px;
-      background: linear-gradient(135deg, #22d3ee, #a855f7);
-      box-shadow: 0 0 8px rgba(129, 140, 248, 0.9);
-    }
-
-    .insights-meta {
-      font-size: 0.75rem;
-      color: rgba(148, 163, 184, 1);
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    .badge-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-    }
-
-    .badge-soft {
-      font-size: 0.72rem;
-      padding: 3px 8px;
-      border-radius: 999px;
-      background: rgba(15, 23, 42, 0.85);
-      border: 1px solid rgba(148, 163, 184, 0.6);
-      color: rgba(209, 213, 219, 0.96);
-    }
-
-    .badge-soft.accent {
-      border-color: rgba(45, 212, 191, 0.85);
-      color: #a5f3fc;
-      background: radial-gradient(circle at 0 0, rgba(34, 197, 235, 0.26), rgba(15, 23, 42, 0.95));
-    }
-
-    /* Helper classes */
-    .text-muted {
-      color: var(--muted);
-    }
-
-    .text-accent {
-      color: #7dd3fc;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IP Geolocation Tracker | TheGhostPacket</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-dark: #2563eb;
+            --secondary: #1e293b;
+            --accent: #06b6d4;
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --bg-hover: #334155;
+            --border: #334155;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, var(--bg-dark) 0%, #1a1a2e 100%);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border);
+            padding: 1.5rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(20px);
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .header-title h1 {
+            font-size: 1.8rem;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--text);
+            border: 2px solid var(--border);
+        }
+
+        .btn-outline:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .main-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .search-section {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 2rem;
+            border: 1px solid var(--border);
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .search-title {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--text);
+        }
+
+        .search-subtitle {
+            color: var(--text-muted);
+            margin-bottom: 2rem;
+        }
+
+        .search-form {
+            display: flex;
+            gap: 1rem;
+            max-width: 600px;
+            margin: 0 auto 2rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .search-input {
+            flex: 1;
+            min-width: 300px;
+            padding: 1rem;
+            background: var(--bg-dark);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .search-btn {
+            padding: 1rem 2rem;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .search-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3);
+        }
+
+        .search-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .quick-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+        }
+
+        .quick-btn {
+            padding: 0.5rem 1rem;
+            background: var(--bg-hover);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            color: var(--text);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .quick-btn:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+
+        /* Map Style Selector */
+        .map-style-selector {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+        }
+
+        .style-btn {
+            padding: 0.3rem 0.8rem;
+            background: var(--bg-hover);
+            border: 1px solid var(--border);
+            border-radius: 15px;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.8rem;
+        }
+
+        .style-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .style-btn:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .results-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .result-card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 2rem;
+            border: 1px solid var(--border);
+        }
+
+        .result-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .result-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .result-title {
+            font-size: 1.3rem;
+            color: var(--text);
+            margin-bottom: 0.25rem;
+        }
+
+        .result-subtitle {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .info-grid {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            background: rgba(59, 130, 246, 0.1);
+            border-radius: 8px;
+            border-left: 3px solid var(--primary);
+        }
+
+        .info-label {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .info-value {
+            color: var(--text);
+            font-weight: 600;
+            text-align: right;
+        }
+
+        .risk-indicator {
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .risk-low {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--success);
+            border: 1px solid var(--success);
+        }
+
+        .risk-medium {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--warning);
+            border: 1px solid var(--warning);
+        }
+
+        .risk-high {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--danger);
+            border: 1px solid var(--danger);
+        }
+
+        .map-container {
+            grid-column: 1 / -1;
+            background: var(--bg-card);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+            height: 450px;
+        }
+
+        .map-header {
+            padding: 1rem 1.5rem;
+            background: var(--bg-hover);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+
+        .map-header-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .map-title {
+            font-size: 1.2rem;
+            color: var(--text);
+        }
+
+        #map {
+            height: 380px;
+            width: 100%;
+            background: var(--bg-dark);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-muted);
+        }
+
+        .loading i {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid var(--danger);
+            color: var(--danger);
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            text-align: center;
+        }
+
+        .success-message {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid var(--success);
+            color: var(--success);
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            text-align: center;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* Cool map marker styles */
+        .custom-marker {
+            background: var(--primary);
+            border: 3px solid white;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            position: relative;
+        }
+
+        .custom-marker::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 10px;
+            height: 10px;
+            background: white;
+            border-radius: 50%;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .main-content {
+                padding: 1rem;
+            }
+
+            .results-section {
+                grid-template-columns: 1fr;
+            }
+
+            .search-form {
+                flex-direction: column;
+            }
+
+            .search-input {
+                min-width: unset;
+            }
+
+            .quick-actions, .map-style-selector {
+                flex-direction: column;
+            }
+
+            .map-header {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+    </style>
 </head>
 <body>
-  <main class="app-shell">
-    <!-- LEFT COLUMN -->
-    <section class="left-col" aria-label="IP geolocation controls and results">
-      <!-- Header -->
-      <header class="header-bar">
-        <div class="brand">
-          <div class="brand-mark"></div>
-          <div class="brand-text">
-            <div class="brand-title">IP Geolocation Tracker</div>
-            <div class="brand-subtitle">
-              Network intelligence &bull; Security reconnaissance
+    <div class="header">
+        <div class="header-content">
+            <div class="header-title">
+                <i class="fas fa-globe-americas" style="color: var(--primary); font-size: 2rem;"></i>
+                <h1>IP Geolocation Tracker</h1>
             </div>
-          </div>
-        </div>
-        <div class="chip-group">
-          <div class="chip">
-            <span class="chip-dot"></span>
-            Live lookup
-          </div>
-          <div class="chip accent">IPv4 &amp; IPv6 ready</div>
-        </div>
-      </header>
-
-      <!-- Hero -->
-      <section class="hero-card">
-        <div class="hero-inner">
-          <h1 class="hero-heading">
-            Trace any
-            <span class="accent-text">IP address</span>
-            in seconds
-          </h1>
-          <p class="hero-lead">
-            **Pinpoint** attacker origin, ISP, and network perimeter with a single lookup, designed for blue team investigations and real‑time security triage.
-          </p>
-          <div class="hero-metadata">
-            <span>
-              <strong>Geo</strong> · city, region, country, ASN
-            </span>
-            <span>
-              <strong>Network</strong> · ISP &amp; hosting insight
-            </span>
-            <span>
-              <strong>Threat</strong> · proxy/VPN indicators
-            </span>
-          </div>
-        </div>
-      </section>
-
-      <!-- Input Panel -->
-      <section class="panel" aria-label="Lookup form">
-        <div class="panel-header-row">
-          <div>
-            <div class="panel-title">
-              Lookup IP / Host
-              <span class="panel-title-badge">Single query</span>
+            <div class="header-actions">
+                <a href="https://github.com/TheGhostPacket" class="btn btn-primary" target="_blank">
+                    <i class="fab fa-github"></i> GitHub
+                </a>
             </div>
-            <p class="panel-subtitle">
-              Enter a public IPv4 / IPv6 address or domain to resolve location and network intelligence.
+        </div>
+    </div>
+
+    <div class="main-content">
+        <!-- Search Section -->
+        <div class="search-section">
+            <h2 class="search-title">🔍 IP Address Lookup</h2>
+            <p class="search-subtitle">
+                Enter an IP address to discover its location, ISP, and security information
             </p>
-          </div>
-          <div class="quick-actions">
-            <button class="qa-btn" type="button" id="btn-use-my-ip">
-              <span class="chip-dot"></span>
-              Use my IP
-            </button>
-            <button class="qa-btn" type="button" id="btn-sample-ip">
-              <span class="btn-icon"></span>
-              Sample target
-            </button>
-          </div>
+            
+            <div class="search-form">
+                <input 
+                    type="text" 
+                    id="ip-input" 
+                    class="search-input" 
+                    placeholder="Enter IP address (e.g., 8.8.8.8)"
+                    pattern="^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$"
+                >
+                <button id="search-btn" class="search-btn">
+                    <i class="fas fa-search"></i>
+                    <span>Lookup</span>
+                </button>
+            </div>
+
+            <div class="quick-actions">
+                <button class="quick-btn" onclick="findMyIP()">
+                    <i class="fas fa-location-arrow"></i> Find My IP
+                </button>
+                <button class="quick-btn" onclick="setExampleIP('8.8.8.8')">
+                    <i class="fas fa-server"></i> Google DNS
+                </button>
+                <button class="quick-btn" onclick="setExampleIP('1.1.1.1')">
+                    <i class="fas fa-cloud"></i> Cloudflare DNS
+                </button>
+                <button class="quick-btn" onclick="setExampleIP('208.67.222.222')">
+                    <i class="fas fa-shield-alt"></i> OpenDNS
+                </button>
+            </div>
+
+            <div class="map-style-selector">
+                <button class="style-btn active" onclick="changeMapStyle('dark')" data-style="dark">
+                    🌙 Dark Theme
+                </button>
+                <button class="style-btn" onclick="changeMapStyle('satellite')" data-style="satellite">
+                    🛰️ Satellite
+                </button>
+                <button class="style-btn" onclick="changeMapStyle('terrain')" data-style="terrain">
+                    🏔️ Terrain
+                </button>
+                <button class="style-btn" onclick="changeMapStyle('street')" data-style="street">
+                    🗺️ Street
+                </button>
+            </div>
         </div>
 
-        <form id="lookup-form" autocomplete="off">
-          <div class="input-row">
-            <div class="field">
-              <label class="field-label" for="ip-input">
-                Target
-                <span class="badge">Required</span>
-              </label>
-              <input
-                id="ip-input"
-                name="ip"
-                class="input"
-                type="text"
-                placeholder="8.8.8.8  ·  1.1.1.1  ·  example.com"
-                required
-              />
+        <!-- Results Section -->
+        <div id="results-section" class="results-section hidden">
+            <!-- Location Information -->
+            <div class="result-card">
+                <div class="result-header">
+                    <div class="result-icon" style="background: rgba(59, 130, 246, 0.2); color: var(--primary);">
+                        <i class="fas fa-map-marker-alt"></i>
+                    </div>
+                    <div>
+                        <h3 class="result-title">Location Details</h3>
+                        <p class="result-subtitle">Geographic information</p>
+                    </div>
+                </div>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">IP Address</span>
+                        <span class="info-value" id="result-ip">--</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Country</span>
+                        <span class="info-value" id="result-country">--</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Region</span>
+                        <span class="info-value" id="result-region">--</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">City</span>
+                        <span class="info-value" id="result-city">--</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Coordinates</span>
+                        <span class="info-value" id="result-coordinates">--</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Timezone</span>
+                        <span class="info-value" id="result-timezone">--</span>
+                    </div>
+                </div>
             </div>
 
-            <div class="field">
-              <label class="field-label" for="mode-select">
-                Mode
-                <span class="badge">Lookup</span>
-              </label>
-              <select id="mode-select" name="mode" class="select">
-                <option value="geo" selected>Geolocation · city &amp; country</option>
-                <option value="isp">Network · ISP &amp; ASN</option>
-                <option value="full">Full profile · all fields</option>
-              </select>
+            <!-- Network Information -->
+            <div class="result-card">
+                <div class="result-header">
+                    <div class="result-icon" style="background: rgba(6, 182, 212, 0.2); color: var(--accent);">
+                        <i class="fas fa-network-wired"></i>
+                    </div>
+                    <div>
+                        <h3 class="result-title">Network Details</h3>
+                        <p class="result-subtitle">ISP and organization</p>
+                    </div>
+                </div>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">ISP</span>
+                        <span class="info-value" id="result-isp">--</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Organization</span>
+                        <span class="info-value" id="result-org">--</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">AS Info</span>
+                        <span class="info-value" id="result-as">--</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Risk Level</span>
+                        <span class="info-value">
+                            <span id="result-risk" class="risk-indicator risk-low">Low</span>
+                        </span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">IP Type</span>
+                        <span class="info-value" id="result-type">--</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Lookup Time</span>
+                        <span class="info-value" id="result-time">--</span>
+                    </div>
+                </div>
             </div>
 
-            <div class="field" style="align-self: flex-end;">
-              <button class="btn" type="submit" id="btn-lookup">
-                <span class="btn-icon"></span>
-                Lookup
-              </button>
+            <!-- Map -->
+            <div class="map-container">
+                <div class="map-header">
+                    <div class="map-header-left">
+                        <i class="fas fa-map" style="color: var(--primary);"></i>
+                        <h3 class="map-title">Geographic Location</h3>
+                    </div>
+                    <div style="display: flex; gap: 1rem; align-items: center;">
+                        <button class="style-btn" onclick="toggleFullscreen()" title="Fullscreen">
+                            <i class="fas fa-expand"></i>
+                        </button>
+                        <span id="map-coords" style="color: var(--text-muted); font-size: 0.8rem;">--</span>
+                    </div>
+                </div>
+                <div id="map"></div>
             </div>
-          </div>
-        </form>
-
-        <div class="panel-footer">
-          <span>
-            ~<strong>200 ms</strong> typical response · free tier friendly
-          </span>
-          <span class="pill-metric">
-            <span class="pill-metric-dot"></span>
-            Status: Ready for next query
-          </span>
         </div>
-      </section>
 
-      <!-- Result Stats -->
-      <section aria-label="Lookup summary">
-        <div class="results-grid">
-          <article class="stat-card primary">
-            <div class="stat-card-label">IP address</div>
-            <div class="stat-card-value" id="stat-ip">—</div>
-            <div class="stat-card-meta" id="stat-type">Awaiting lookup…</div>
-            <div class="stat-card-pill">Origin</div>
-          </article>
-
-          <article class="stat-card">
-            <div class="stat-card-label">Location</div>
-            <div class="stat-card-value" id="stat-location">—</div>
-            <div class="stat-card-meta" id="stat-timezone">Timezone: —</div>
-          </article>
-
-          <article class="stat-card">
-            <div class="stat-card-label">Network</div>
-            <div class="stat-card-value" id="stat-isp">—</div>
-            <div class="stat-card-meta" id="stat-asn">ASN: —</div>
-          </article>
-
-          <article class="stat-card">
-            <div class="stat-card-label">Coordinates</div>
-            <div class="stat-card-value" id="stat-coords">—</div>
-            <div class="stat-card-meta" id="stat-accuracy">Accuracy radius: — km</div>
-          </article>
+        <!-- Loading -->
+        <div id="loading" class="loading hidden">
+            <i class="fas fa-spinner"></i>
+            <p>Looking up IP geolocation...</p>
         </div>
-      </section>
-    </section>
 
-    <!-- RIGHT COLUMN -->
-    <section class="right-col" aria-label="Map and threat insights">
-      <!-- Map -->
-      <section class="map-card">
-        <header class="map-header">
-          <div class="map-title">
-            <span class="map-title-indicator"></span>
-            Live geolocation map
-          </div>
-          <div class="map-controls">
-            <span class="map-chip">Leaflet / tile layer ready</span>
-            <div class="map-view-toggle">
-              <button type="button" class="active" id="view-geo">Geo</button>
-              <button type="button" id="view-network">Network</button>
-            </div>
-          </div>
-        </header>
-        <div class="map-canvas" id="map">
-          <!-- If you already use Leaflet or any map library, attach it to #map -->
-          <div class="map-placeholder" id="map-placeholder">
-            Map layer not yet loaded. Attach your Leaflet / map initialization to the <code>#map</code> element and update marker on each lookup.
-          </div>
-          <div class="map-overlay"></div>
-          <div class="map-origin"></div>
-          <div class="map-target"></div>
-          <div class="map-path"></div>
-        </div>
-      </section>
+        <!-- Error/Success Messages -->
+        <div id="message-container"></div>
+    </div>
 
-      <!-- Insights -->
-      <section class="insights-card">
-        <header class="insights-header">
-          <div>
-            <div class="insights-title">
-              Threat &amp; routing insights
-            </div>
-            <p class="insights-subtitle">
-              High‑signal metadata for incident response, enrichment, and perimeter hardening.
-            </p>
-          </div>
-          <span class="risk-pill">
-            <span class="risk-dot"></span>
-            Risk surface preview
-          </span>
-        </header>
+    <script>
+        let map;
+        let marker;
+        let currentMapStyle = 'dark';
+        let currentTileLayer;
 
-        <div class="insights-grid">
-          <ul class="insights-list" id="insights-list">
-            <li>
-              <span class="bullet"></span>
-              <div>
-                <strong>Routing profile.</strong>
-                Check if the IP announces from a data center, consumer ISP, or anonymization service.
-              </div>
-            </li>
-            <li>
-              <span class="bullet"></span>
-              <div>
-                <strong>Recon context.</strong>
-                Combine geolocation with SSH, HTTP, or VPN logs to cluster events by region or ASN.
-              </div>
-            </li>
-            <li>
-              <span class="bullet"></span>
-              <div>
-                <strong>Response decisions.</strong>
-                Use country, network, and risk signals to drive firewall rules or escalation playbooks.
-              </div>
-            </li>
-          </ul>
+        // Map style configurations
+        const mapStyles = {
+            dark: {
+                url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+                name: '🌙 Dark Theme'
+            },
+            satellite: {
+                url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+                attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
+                name: '🛰️ Satellite'
+            },
+            terrain: {
+                url: 'https://stamen-tiles-{s}.a.ssl.fastly.net/terrain/{z}/{x}/{y}{r}.png',
+                attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+                name: '🏔️ Terrain'
+            },
+            street: {
+                url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+                name: '🗺️ Street'
+            }
+        };
 
-          <div class="insights-meta">
-            <div class="badge-row">
-              <span class="badge-soft accent">Ideal for blue teams</span>
-              <span class="badge-soft">Supports IPv4 / IPv6</span>
-              <span class="badge-soft">Ready for API chaining</span>
-            </div>
-            <p>
-              Hook this panel into abuse feeds or VPN/proxy indicators from your existing provider to render a richer risk score per IP.
-            </p>
-            <button type="button" class="btn-secondary" style="margin-top: 4px; padding-inline: 12px; font-size: 0.78rem;">
-              Export lookup JSON
-            </button>
-          </div>
-        </div>
-      </section>
-    </section>
-  </main>
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeMap();
+            setupEventListeners();
+        });
 
-  <!-- OPTIONAL: Wire this to your existing lookup logic -->
-  <script>
-    // Basic skeleton to integrate with your current backend / API.
-    // Replace `performLookup` with your existing fetch logic.
-    async function performLookup(ip, mode) {
-    const res = await fetch('/api/lookup', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ ip })
-    });
-      if (!res.ok) throw new Error('Lookup failed');
-      return res.json();
-    }
+        function initializeMap() {
+            // Initialize map centered on world
+            map = L.map('map', {
+                zoomControl: true,
+                attributionControl: true
+            }).setView([20, 0], 2);
+            
+            // Add initial dark tile layer
+            changeMapStyle('dark');
+        }
 
+        function changeMapStyle(style) {
+            // Remove existing tile layer
+            if (currentTileLayer) {
+                map.removeLayer(currentTileLayer);
+            }
 
-    function populateUI(data) {
-      if (!data) return;
-      // Map your existing JSON fields to these UI elements.
-      // This is just a sample structure – adjust based on your actual API.
-      document.getElementById('stat-ip').textContent = data.ip || '—';
-      document.getElementById('stat-type').textContent = data.type || 'Public address';
+            // Add new tile layer
+            const styleConfig = mapStyles[style];
+            currentTileLayer = L.tileLayer(styleConfig.url, {
+                attribution: styleConfig.attribution,
+                maxZoom: 18,
+                tileSize: 256,
+                zoomOffset: 0
+            }).addTo(map);
 
-      const locParts = [];
-      if (data.city) locParts.push(data.city);
-      if (data.region) locParts.push(data.region);
-      if (data.country) locParts.push(data.country);
-      document.getElementById('stat-location').textContent = locParts.join(', ') || '—';
+            currentMapStyle = style;
 
-      document.getElementById('stat-timezone').textContent =
-        'Timezone: ' + (data.timezone || '—');
+            // Update active button
+            document.querySelectorAll('.style-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.getAttribute('data-style') === style) {
+                    btn.classList.add('active');
+                }
+            });
+        }
 
-      document.getElementById('stat-isp').textContent = data.isp || '—';
-      document.getElementById('stat-asn').textContent =
-        'ASN: ' + (data.asn || '—');
+        function setupEventListeners() {
+            const ipInput = document.getElementById('ip-input');
+            const searchBtn = document.getElementById('search-btn');
 
-      if (data.latitude && data.longitude) {
-        document.getElementById('stat-coords').textContent =
-          data.latitude + ', ' + data.longitude;
-      } else {
-        document.getElementById('stat-coords').textContent = '—';
-      }
+            // Search button click
+            searchBtn.addEventListener('click', performLookup);
 
-      document.getElementById('stat-accuracy').textContent =
-        'Accuracy radius: ' + (data.accuracy_km || '—') + ' km';
+            // Enter key in input field
+            ipInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    performLookup();
+                }
+            });
 
-      // If you already have a Leaflet map, call your existing updateMarker here.
-      // updateMap(data.latitude, data.longitude);
-      const placeholder = document.getElementById('map-placeholder');
-      if (placeholder) placeholder.style.display = 'none';
-    }
+            // Input validation
+            ipInput.addEventListener('input', function() {
+                const isValid = validateIPAddress(this.value);
+                if (this.value && !isValid) {
+                    this.style.borderColor = 'var(--danger)';
+                } else {
+                    this.style.borderColor = 'var(--border)';
+                }
+            });
 
-    document.getElementById('lookup-form').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const ip = document.getElementById('ip-input').value.trim();
-      const mode = document.getElementById('mode-select').value;
-      if (!ip) return;
+            // Map click event to show coordinates
+            map.on('click', function(e) {
+                const coords = e.latlng;
+                document.getElementById('map-coords').textContent = 
+                    `${coords.lat.toFixed(4)}, ${coords.lng.toFixed(4)}`;
+            });
+        }
 
-      document.getElementById('stat-type').textContent = 'Resolving…';
-      try {
-        const data = await performLookup(ip, mode);
-        populateUI(data || {});
-      } catch (err) {
-        document.getElementById('stat-type').textContent = 'Lookup failed';
-        console.error(err);
-      }
-    });
+        function validateIPAddress(ip) {
+            const ipRegex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+            return ipRegex.test(ip);
+        }
 
-    document.getElementById('btn-sample-ip').addEventListener('click', () => {
-      document.getElementById('ip-input').value = '8.8.8.8';
-    });
+        async function performLookup() {
+            const ipInput = document.getElementById('ip-input');
+            const searchBtn = document.getElementById('search-btn');
+            const loading = document.getElementById('loading');
+            const resultsSection = document.getElementById('results-section');
+            const messageContainer = document.getElementById('message-container');
 
-    document.getElementById('btn-use-my-ip').addEventListener('click', () => {
-      // If your backend exposes /my-ip, call that instead.
-      // This is just a placeholder.
-      document.getElementById('ip-input').value = 'your-current-ip';
-    });
+            const ipAddress = ipInput.value.trim();
 
-    document.getElementById('view-geo').addEventListener('click', () => {
-      document.getElementById('view-geo').classList.add('active');
-      document.getElementById('view-network').classList.remove('active');
-    });
-    document.getElementById('view-network').addEventListener('click', () => {
-      document.getElementById('view-network').classList.add('active');
-      document.getElementById('view-geo').classList.remove('active');
-    });
-  </script>
+            // Validate input
+            if (!ipAddress) {
+                showMessage('Please enter an IP address', 'error');
+                return;
+            }
+
+            if (!validateIPAddress(ipAddress)) {
+                showMessage('Please enter a valid IP address', 'error');
+                return;
+            }
+
+            // Show loading state
+            loading.classList.remove('hidden');
+            resultsSection.classList.add('hidden');
+            messageContainer.innerHTML = '';
+            searchBtn.disabled = true;
+            searchBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Looking up...';
+
+            try {
+                const response = await fetch('/api/lookup', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ ip: ipAddress })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    displayResults(data);
+                    showMessage('IP lookup completed successfully!', 'success');
+                } else {
+                    showMessage(`Lookup failed: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                showMessage(`Network error: ${error.message}`, 'error');
+            } finally {
+                loading.classList.add('hidden');
+                searchBtn.disabled = false;
+                searchBtn.innerHTML = '<i class="fas fa-search"></i> Lookup';
+            }
+        }
+
+        function displayResults(data) {
+            // Update result fields
+            document.getElementById('result-ip').textContent = data.ip;
+            document.getElementById('result-country').textContent = `${data.country} (${data.country_code})`;
+            document.getElementById('result-region').textContent = data.region;
+            document.getElementById('result-city').textContent = data.city;
+            document.getElementById('result-coordinates').textContent = 
+                data.latitude && data.longitude ? `${data.latitude}, ${data.longitude}` : 'Unknown';
+            document.getElementById('result-timezone').textContent = data.timezone;
+            document.getElementById('result-isp').textContent = data.isp;
+            document.getElementById('result-org').textContent = data.organization;
+            document.getElementById('result-as').textContent = data.as_info;
+            document.getElementById('result-type').textContent = data.is_private ? 'Private IP' : 'Public IP';
+            document.getElementById('result-time').textContent = data.lookup_time;
+
+            // Update risk indicator
+            const riskElement = document.getElementById('result-risk');
+            riskElement.textContent = data.risk_level;
+            riskElement.className = `risk-indicator risk-${data.risk_level.toLowerCase()}`;
+
+            // Update map
+            if (data.latitude && data.longitude) {
+                updateMap(data.latitude, data.longitude, data);
+            }
+
+            // Show results
+            document.getElementById('results-section').classList.remove('hidden');
+        }
+
+        function updateMap(lat, lng, data) {
+            // Remove existing marker
+            if (marker) {
+                map.removeLayer(marker);
+            }
+
+            // Create custom icon for the marker
+            const customIcon = L.divIcon({
+                className: 'custom-div-icon',
+                html: `
+                    <div style="
+                        background: #3b82f6;
+                        border: 3px solid white;
+                        border-radius: 50%;
+                        width: 30px;
+                        height: 30px;
+                        position: relative;
+                        box-shadow: 0 3px 10px rgba(59, 130, 246, 0.4);
+                    ">
+                        <div style="
+                            position: absolute;
+                            top: 50%;
+                            left: 50%;
+                            transform: translate(-50%, -50%);
+                            width: 10px;
+                            height: 10px;
+                            background: white;
+                            border-radius: 50%;
+                        "></div>
+                    </div>
+                `,
+                iconSize: [30, 30],
+                iconAnchor: [15, 15]
+            });
+
+            // Add new marker with custom popup
+            marker = L.marker([lat, lng], { icon: customIcon }).addTo(map)
+                .bindPopup(`
+                    <div style="color: #333; font-size: 14px; min-width: 200px;">
+                        <div style="font-weight: bold; margin-bottom: 8px; color: #3b82f6;">
+                            🌍 ${data.ip}
+                        </div>
+                        <div style="margin: 4px 0;">📍 ${data.city}, ${data.region}</div>
+                        <div style="margin: 4px 0;">🏛️ ${data.country}</div>
+                        <div style="margin: 4px 0;">🏢 ${data.isp}</div>
+                        <div style="margin: 8px 0 4px; font-size: 12px; color: #666;">
+                            📐 ${lat.toFixed(4)}, ${lng.toFixed(4)}
+                        </div>
+                    </div>
+                `, {
+                    maxWidth: 250,
+                    className: 'custom-popup'
+                })
+                .openPopup();
+
+            // Center map on location with a nice zoom level
+            map.setView([lat, lng], 10);
+
+            // Update coordinates display
+            document.getElementById('map-coords').textContent = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+
+            // Add a subtle circle to show the general area
+            L.circle([lat, lng], {
+                color: '#3b82f6',
+                fillColor: '#3b82f6',
+                fillOpacity: 0.1,
+                radius: 50000 // 50km radius
+            }).addTo(map);
+        }
+
+        async function findMyIP() {
+            const loading = document.getElementById('loading');
+            const messageContainer = document.getElementById('message-container');
+
+            loading.classList.remove('hidden');
+            messageContainer.innerHTML = '';
+
+            try {
+                const response = await fetch('/api/my-ip');
+                const data = await response.json();
+
+                if (data.success) {
+                    document.getElementById('ip-input').value = data.ip;
+                    displayResults(data);
+                    showMessage('Your IP location found!', 'success');
+                } else {
+                    showMessage(`Failed to find your IP: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                showMessage(`Network error: ${error.message}`, 'error');
+            } finally {
+                loading.classList.add('hidden');
+            }
+        }
+
+        function setExampleIP(ip) {
+            document.getElementById('ip-input').value = ip;
+        }
+
+        function toggleFullscreen() {
+            const mapContainer = document.querySelector('.map-container');
+            if (mapContainer.requestFullscreen) {
+                mapContainer.requestFullscreen();
+            }
+        }
+
+        function showMessage(message, type) {
+            const messageContainer = document.getElementById('message-container');
+            const className = type === 'error' ? 'error-message' : 'success-message';
+            
+            messageContainer.innerHTML = `
+                <div class="${className}">
+                    <i class="fas fa-${type === 'error' ? 'exclamation-triangle' : 'check-circle'}"></i>
+                    ${message}
+                </div>
+            `;
+
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                messageContainer.innerHTML = '';
+            }, 5000);
+        }
+    </script>
 </body>
 </html>
